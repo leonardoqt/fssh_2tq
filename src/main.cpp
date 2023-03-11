@@ -51,8 +51,8 @@ int main()
 	//
 	vec num_r, num_t, num_R, num_T;
 	// loop over each ek
-	vec Ek = linspace(sqrt(ek0),sqrt(ek1),nek);
-	Ek = square(Ek);
+	vec Ek = linspace(log(ek0),log(ek1),nek);
+	Ek = exp(Ek);
 	for(auto iek : Ek)
 	{
 		num_r = vec(sz,fill::zeros);
@@ -80,7 +80,7 @@ int main()
 		MPI_Allreduce(num_t.memptr(),num_T.memptr(),sz,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 		if (rank ==0)
 		{
-			cout<<sqrt(2*mass*iek);
+			cout<<log(iek);
 			for (auto m1:num_R)
 				cout<<'\t'<<m1/nsample;
 			for (auto m1:num_T)

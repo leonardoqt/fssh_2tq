@@ -11,17 +11,29 @@ void potential::init(int Sz, double Coupling, double Width, double Shift)
 	shift = Shift;
 }
 
+// Tully 1
+//void potential::diab(vec x, mat& H)
+//{
+//	H = zeros(sz,sz);
+//	double A=0.01, B=1.6, C=0.005, D=1.0;
+//	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
+//	if (x(0) < 0)
+//		H(0,0) = -A*(1 - exp(B*x(0)));
+//	else
+//		H(0,0) = A*(1 - exp(-B*x(0)));
+//	H(1,1) = -H(0,0);
+//}
+
+// Tully 2
 void potential::diab(vec x, mat& H)
 {
 	H = zeros(sz,sz);
-	double A=0.01, B=1.6, C=0.005, D=1.0;
+	double A=0.1, B=0.28, C=0.015, D=0.06, E = 0.05;
+	H(0,0) = 0;
+	H(1,1) = -A*exp(-B*x(0)*x(0))+E;
 	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
-	if (x(0) < 0)
-		H(0,0) = -A*(1 - exp(B*x(0)));
-	else
-		H(0,0) = A*(1 - exp(-B*x(0)));
-	H(1,1) = -H(0,0);
 }
+
 
 //void potential::diab(vec x, mat& H)
 //{
