@@ -74,9 +74,6 @@ void ionic::try_hop()
 	V0 = V_tmp;
 }
 
-
-
-
 void ionic::print()
 {
 	cout<<"--From ionic--"<<endl;
