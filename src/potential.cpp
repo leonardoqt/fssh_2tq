@@ -3,12 +3,13 @@
 using namespace arma;
 using namespace std;
 
-void potential::init(int Sz, double Coupling, double Width, double Shift)
+void potential::init(int Sz, double Coupling, double Width, double Shift, double Scaling)
 {
 	sz = Sz;
 	coupling = Coupling;
 	width = Width;
 	shift = Shift;
+	scaling = Scaling;
 }
 
 // Tully 1
@@ -25,26 +26,27 @@ void potential::init(int Sz, double Coupling, double Width, double Shift)
 //}
 
 // Tully 2
-void potential::diab(vec x, mat& H)
-{
-	H = zeros(sz,sz);
-	double A=0.1, B=0.28, C=0.015, D=0.06, E = 0.05;
-	H(0,0) = 0;
-	H(1,1) = -A*exp(-B*x(0)*x(0))+E;
-	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
-}
-
-
 //void potential::diab(vec x, mat& H)
 //{
-//	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
-//	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
-//	// diagonal will be +- tanh(2/w*x)+shift*n
-//	for (int t1=0; t1<sz/2; t1++)
-//		H(t1,t1) = tanh(2*x(0)/width)+t1*shift;
-//	for (int t1 = sz/2; t1<sz; t1++)
-//		H(t1,t1) = -tanh(2*x(0)/width)+(sz-1-t1)*shift;
+//	H = zeros(sz,sz);
+//	double A=0.1, B=0.28, C=0.015, D=0.06, E = 0.05;
+//	H(0,0) = 0;
+//	H(1,1) = -A*exp(-B*x(0)*x(0))+E;
+//	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
 //}
+
+
+void potential::diab(vec x, mat& H)
+{
+	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
+	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
+	// diagonal will be +- tanh(2/w*x)+shift*n
+	for (int t1=0; t1<sz/2; t1++)
+		H(t1,t1) = tanh(2*x(0)/width)+t1*shift;
+	for (int t1 = sz/2; t1<sz; t1++)
+		H(t1,t1) = -tanh(2*x(0)/width)+(sz-1-t1)*shift;
+	H = H * scaling;
+}
 
 void potential::adiab(vec x, vec& E, mat& V)
 {

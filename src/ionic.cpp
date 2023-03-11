@@ -56,6 +56,7 @@ void ionic::try_hop()
 		if ( ek >= del_pot )
 		{
 			// rescale velocity
+			// TODO: this expression is not suitable for more than 1d
 			v_t = sqrt( (ek-del_pot)/(ek) ) * v_t;
 			istate = jstate;
 			a_t = -H->grad(x_t,istate)/mass;
@@ -63,7 +64,9 @@ void ionic::try_hop()
 		else
 		{
 			// frustrated hops
-			v_t = -v_t;
+			// TODO: this expression is not suitable for more than 1d
+			if ( dot(a,v) > 0 && dot(a,H->grad(x_t,istate)) > 0 )
+				v_t = -v_t;
 		}
 	}
 	mat V_tmp, U_tmp, T_tmp;
