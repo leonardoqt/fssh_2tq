@@ -11,6 +11,7 @@ class ionic
 public:
 	int istate, jstate;
 	double mass, del_pot;
+	double time_duration;
 	potential *H;
 	arma::vec x, x_t, v, v_t, a, a_t, dij;
 	arma::vec E0; // always associated with x

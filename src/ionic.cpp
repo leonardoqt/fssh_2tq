@@ -10,6 +10,7 @@ void ionic::assign_potential(potential* HH)
 
 void ionic::init(double Mass, vec X, vec V, int Istate)
 {
+	time_duration = 0;
 	istate = Istate;
 	mass = Mass;
 	x = x_t = X;
@@ -46,6 +47,7 @@ void ionic::move_by(int Jstate, double dt)
 		//
 		// TODO: get dij. not necessary for 1D
 	}
+	time_duration += dt;
 }
 
 void ionic::try_hop()
