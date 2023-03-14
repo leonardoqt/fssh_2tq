@@ -94,7 +94,7 @@ void potential::parallel_zy(mat V1, mat& V2, mat&U)
 		for (int t2=t1+1; t2<sz; t2++)
 		{
 			double dtr = 3*(U(t1,t1)*U(t1,t1)+U(t2,t2)*U(t2,t2)) + 6*U(t1,t2)*U(t2,t1) + 8*(U(t1,t1)+U(t2,t2)) - 3*(dot(U.row(t1),U.col(t1))+dot(U.row(t2),U.col(t2)));
-			if (dtr <-1e-10)
+			if (dtr <-1e-5)
 			{
 				U.col(t1) *= -1;
 				U.col(t2) *= -1;
