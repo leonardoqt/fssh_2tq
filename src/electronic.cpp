@@ -21,7 +21,7 @@ void electronic::init(cx_mat Rho, mat VV)
 int electronic::query_ion(double thd1, vec EE1, mat TT, double tc)
 {
 	vec e1 = EE1 - mean(EE1);
-	double g0 = 0;
+	double g0 = 1e-13;
 	for (int t1=0;t1<sz;t1++)
 		for (int t2=0;t2<sz;t2++)
 		{
