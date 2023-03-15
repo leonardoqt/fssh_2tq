@@ -109,8 +109,10 @@ void potential::parallel_zy(mat V1, mat& V2, mat&U)
 vec potential::grad(vec x, int istate)
 {
 	double dx = 1e-6;
-	vec E0, E1, x1;
-	mat V;
+	vec E0, x1;
+	mat V, H0, H1;
+	//
+	diab(x,H0);
 	adiab(x,E0,V);
 	vec grad_x = x;
 	//
@@ -118,8 +120,9 @@ vec potential::grad(vec x, int istate)
 	{
 		x1 = x;
 		x1(t1) += dx;
-		adiab(x1,E1,V);
-		grad_x(t1) = ( E1(istate)-E0(istate) ) / dx;
+		diab(x1,H1);
+		mat tmp = V.col(istate).t()*(H1-H0)*V.col(istate);
+		grad_x(t1) = tmp(0,0) / dx;
 	}
 	return grad_x;
 }
