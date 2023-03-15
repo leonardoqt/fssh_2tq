@@ -50,6 +50,57 @@ void ionic::move_by(int Jstate, double dt)
 	time_duration += dt;
 }
 
+void ionic::move_by(int Jstate, vec dHdtm, double dt)
+{
+	// make actual move and rescale velocity if Jstate != istate
+	//
+	jstate = Jstate;
+	x_t = x + v * dt + a *dt*dt/2;
+	a_t = -H->grad(x_t,istate)/mass;
+	v_t = v + (a + a_t)/2*dt;
+	// for K1>1, use interpolated a1
+	if (dHdtm.n_elem >1)
+	{
+		vec v0 = v;
+		vec a0 = a, a1;
+		double tq = dt / dHdtm.n_elem;
+		for(size_t t1=0; t1<dHdtm.n_elem-1; t1++)
+		{
+			double ff = dHdtm(t1);
+			double A = -tq/8*( dot(a0,a0)*tq*tq+4*tq*dot(a0,v0)-8*ff*tq+4*dot(v0,v0) );
+			double B = tq*tq/2*dot(a0,a0)+2*tq*dot(a0,v0)-4*ff*tq+2*dot(v0,v0);
+			double C = 4*( tq*dot(a0,a0)+dot(a0,v0)+ff );
+			double ll1 = (-B+sqrt(B*B-4*A*C)) /2/A;
+			double ll2 = (-B-sqrt(B*B-4*A*C)) /2/A;
+			vec aa1 = ( 2*a0+ll1*(v0+a0*tq/2) ) / (2-ll1*tq);
+			vec aa2 = ( 2*a0+ll2*(v0+a0*tq/2) ) / (2-ll2*tq);
+			if ( dot(aa1-a0,aa1-a0) < dot(aa2-a0,aa2-a0) )
+			{
+				v0 = v0 + (a0+aa1)/2*tq;
+				a0 = aa1;
+			}
+			else
+			{
+				v0 = v0 + (a0+aa2)/2*tq;
+				a0 = aa2;
+			}
+		}
+		v_t = v + (a0 + a_t)/2*tq;
+	}
+	//
+	// update dij and del_pot if jstate != istate
+	if ( jstate != istate )
+	{
+		vec e_tmp;
+		mat v_tmp;
+		H->adiab(x_t,e_tmp,v_tmp);
+		del_pot = e_tmp(jstate) - e_tmp(istate);
+		//
+		// TODO: get dij. not necessary for 1D
+	}
+	time_duration += dt;
+}
+
 void ionic::try_hop()
 {
 	if ( jstate != istate)

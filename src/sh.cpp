@@ -46,6 +46,7 @@ void sh::run_step()
 	double dtq1 = dtc / K1;
 	//
 	//interpolate potential in LD
+	vec dHdtm(K1,fill::zeros); // use for vv of dqt1
 	vec E_tq0 = E1, E_tq1;
 	mat V_tq0 = V1, V_tq1, U_tq, T_tq;
 	mat dH = U*diagmat(E2)*U.t()-diagmat(E1);
@@ -55,6 +56,8 @@ void sh::run_step()
 		mat H_tq1 = V1 * ( diagmat(E1) + itq1*1.0/K1*dH ) * V1.t();
 		H->diag_parallel(H_tq1,V_tq0,E_tq1,V_tq1,U_tq,T_tq);
 		T_tq /= dtq1;
+		mat tmp = ( V_tq1.col(ion->istate).t()*dH*V_tq1.col(ion->istate) ) / dtc / ion->mass;
+		dHdtm(itq1-1) = tmp(0,0);
 		//
 		// get required dtq2
 		int K2 = ele->query_hop(thd2,E_tq0,E_tq1,U_tq,T_tq,ion->istate,dtq1);
@@ -84,7 +87,8 @@ void sh::run_step()
 	}
 	// execute hop (or not, just ionic step)
 	if (attemp_hop ==0) attemp_hop_state = ion->istate;
-	ion->move_by(attemp_hop_state,dtc);
+	//ion->move_by(attemp_hop_state,dtc);
+	ion->move_by(attemp_hop_state,dHdtm,dtc);
 	ion->try_hop();
 	ele->V = ion->V0;
 }

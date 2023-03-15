@@ -24,6 +24,7 @@ public:
 	void try_move(double dt, arma::vec& E1, arma::vec& E2, arma::mat& V1, arma::mat& V2, arma::mat& U, arma::mat& T);
 	// get new x and v using velocity verlet, update del_pot and dij used for rescale velocity if jstate != istate
 	void move_by(int Jstate, double dt); 
+	void move_by(int Jstate, arma::vec dHdtm, double dt); 
 	// there are two options in dealing with hop in dtq1
 	// 1. when a hop occurs, get the true H at the hopped place; ignore the rest of dtq1
 	// 2. supress other possible hops in dtq1, use the final position in tc to update ionic status
