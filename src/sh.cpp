@@ -50,13 +50,14 @@ void sh::run_step()
 	vec E_tq0 = E1, E_tq1;
 	mat V_tq0 = V1, V_tq1, U_tq, T_tq;
 	mat dH = U*diagmat(E2)*U.t()-diagmat(E1);
+	mat dHdt_d = V1*dH*V1.t()/dtc;
 	int attemp_hop = 0, attemp_hop_state;
 	for (int itq1=1; itq1<=K1; itq1++)
 	{
 		mat H_tq1 = V1 * ( diagmat(E1) + itq1*1.0/K1*dH ) * V1.t();
 		H->diag_parallel(H_tq1,V_tq0,E_tq1,V_tq1,U_tq,T_tq);
 		T_tq /= dtq1;
-		mat tmp = ( V_tq1.col(ion->istate).t()*dH*V_tq1.col(ion->istate) ) / dtc / ion->mass;
+		mat tmp = ( V_tq1.col(ion->istate).t()*dHdt_d*V_tq1.col(ion->istate) ) / ion->mass;
 		dHdtm(itq1-1) = tmp(0,0);
 		//
 		// get required dtq2

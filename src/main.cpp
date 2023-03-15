@@ -120,6 +120,7 @@ int main()
 				while(!fssh.stop_traj())
 				{
 					fssh.run_step();
+					//cout<<ion.x(0)<<'\t'<<ion.v(0)<<'\t'<<ion.E0(ion.istate)<<'\t'<<ion.E0(ion.istate)+0.5*mass*dot(ion.v,ion.v)<<endl;
 					if (ion.time_duration > max_time)
 						break;
 				}

@@ -64,12 +64,18 @@ void ionic::move_by(int Jstate, vec dHdtm, double dt)
 		vec v0 = v;
 		vec a0 = a, a1;
 		double tq = dt / dHdtm.n_elem;
+		int bad_termination = 0;
 		for(size_t t1=0; t1<dHdtm.n_elem-1; t1++)
 		{
 			double ff = dHdtm(t1);
 			double A = -tq/8*( dot(a0,a0)*tq*tq+4*tq*dot(a0,v0)-8*ff*tq+4*dot(v0,v0) );
 			double B = tq*tq/2*dot(a0,a0)+2*tq*dot(a0,v0)-4*ff*tq+2*dot(v0,v0);
 			double C = 4*( tq*dot(a0,a0)+dot(a0,v0)+ff );
+			if ( B*B-4*A*C < 0)
+			{
+				bad_termination = 1;
+				break;
+			}
 			double ll1 = (-B+sqrt(B*B-4*A*C)) /2/A;
 			double ll2 = (-B-sqrt(B*B-4*A*C)) /2/A;
 			vec aa1 = ( 2*a0+ll1*(v0+a0*tq/2) ) / (2-ll1*tq);
@@ -85,7 +91,8 @@ void ionic::move_by(int Jstate, vec dHdtm, double dt)
 				a0 = aa2;
 			}
 		}
-		v_t = v + (a0 + a_t)/2*tq;
+		if (!bad_termination)
+			v_t = v0 + (a0 + a_t)/2*tq;
 	}
 	//
 	// update dij and del_pot if jstate != istate
