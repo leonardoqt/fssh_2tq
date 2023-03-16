@@ -13,17 +13,17 @@ void potential::init(int Sz, double Coupling, double Width, double Shift, double
 }
 
 // Tully 1
-void potential::diab(vec x, mat& H)
-{
-	H = zeros(sz,sz);
-	double A=0.01, B=1.6, C=0.005, D=1.0;
-	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
-	if (x(0) < 0)
-		H(0,0) = -A*(1 - exp(B*x(0)));
-	else
-		H(0,0) = A*(1 - exp(-B*x(0)));
-	H(1,1) = -H(0,0);
-}
+//void potential::diab(vec x, mat& H)
+//{
+//	H = zeros(sz,sz);
+//	double A=0.01, B=1.6, C=0.005, D=1.0;
+//	H(0,1) = H(1,0) = C*exp(-D*x(0)*x(0));
+//	if (x(0) < 0)
+//		H(0,0) = -A*(1 - exp(B*x(0)));
+//	else
+//		H(0,0) = A*(1 - exp(-B*x(0)));
+//	H(1,1) = -H(0,0);
+//}
 
 // Tully 2
 //void potential::diab(vec x, mat& H)
@@ -47,6 +47,19 @@ void potential::diab(vec x, mat& H)
 //		H(t1,t1) = -tanh(2*x(0)/width)+(sz-1-t1)*shift;
 //	H = H * scaling;
 //}
+
+// W model
+void potential::diab(vec x, mat& H)
+{
+	double pi2 = atan(1)*2;
+	double ang0 = pi2 / sz;
+	double dang = ang0 * 2;
+	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
+	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
+	for (int t1=0; t1<sz; t1++)
+		H(t1,t1) = tanh(tan(pi2-ang0-t1*dang) * x(0))+t1*shift;
+	H = H * scaling;
+}
 
 // Z_ model
 //void potential::diab(vec x, mat& H)
