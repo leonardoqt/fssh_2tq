@@ -88,8 +88,8 @@ void sh::run_step()
 	}
 	// execute hop (or not, just ionic step)
 	if (attemp_hop ==0) attemp_hop_state = ion->istate;
-	//ion->move_by(attemp_hop_state,dtc);
-	ion->move_by(attemp_hop_state,dHdtm,dtc);
+	ion->move_by(attemp_hop_state,dtc);
+	//ion->move_by(attemp_hop_state,dHdtm,dtc);
 	ion->try_hop();
 	ele->V = ion->V0;
 }

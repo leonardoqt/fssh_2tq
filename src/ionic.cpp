@@ -129,12 +129,15 @@ void ionic::try_hop()
 				v_t = -v_t;
 		}
 	}
+	double E_pot0 = E0(istate), E_k0 = 0.5*mass*dot(v,v);
 	mat V_tmp, U_tmp, T_tmp;
 	x = x_t;
 	v = v_t;
 	a = a_t;
 	H->adiab_parallel(x,V0,E0,V_tmp,U_tmp,T_tmp);
 	V0 = V_tmp;
+	double E_pot1 = E0(istate), E_k1 = 0.5*mass*dot(v,v);
+	v = sqrt((E_pot0+E_k0-E_pot1)/E_k1)*v;
 }
 
 void ionic::print()
