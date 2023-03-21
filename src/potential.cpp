@@ -36,30 +36,30 @@ void potential::init(int Sz, double Coupling, double Width, double Shift, double
 //}
 
 // Z model
-//void potential::diab(vec x, mat& H)
-//{
-//	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
-//	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
-//	// diagonal will be +- tanh(2/w*x)+shift*n
-//	for (int t1=0; t1<sz/2; t1++)
-//		H(t1,t1) = tanh(2*x(0)/width)+t1*shift;
-//	for (int t1 = sz/2; t1<sz; t1++)
-//		H(t1,t1) = -tanh(2*x(0)/width)+(sz-1-t1)*shift;
-//	H = H * scaling;
-//}
-
-// W model
 void potential::diab(vec x, mat& H)
 {
-	double pi2 = atan(1)*2;
-	double ang0 = pi2 / sz;
-	double dang = ang0 * 2;
 	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
 	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
-	for (int t1=0; t1<sz; t1++)
-		H(t1,t1) = tanh(tan(pi2-ang0-t1*dang) * x(0))+t1*shift;
+	// diagonal will be +- tanh(2/w*x)+shift*n
+	for (int t1=0; t1<sz/2; t1++)
+		H(t1,t1) = tanh(2*x(0)/width)+t1*shift;
+	for (int t1 = sz/2; t1<sz; t1++)
+		H(t1,t1) = -tanh(2*x(0)/width)+(sz-1-t1)*shift;
 	H = H * scaling;
 }
+
+// W model
+//void potential::diab(vec x, mat& H)
+//{
+//	double pi2 = atan(1)*2;
+//	double ang0 = pi2 / sz;
+//	double dang = ang0 * 2;
+//	// off diagonal will be c/sqrt(sz)*exp(-x^2/2w^2)
+//	H = ones(sz,sz)*coupling/sqrt(sz)*exp(-x(0)*x(0)/2/width/width);
+//	for (int t1=0; t1<sz; t1++)
+//		H(t1,t1) = tanh(tan(pi2-ang0-t1*dang) * x(0))+t1*shift;
+//	H = H * scaling;
+//}
 
 // Z_ model
 //void potential::diab(vec x, mat& H)
