@@ -99,7 +99,8 @@ int main()
 	vec num_r, num_t, num_R, num_T;
 	double trapped, Trapped;
 	// loop over each ek
-	vec Ek = linspace(ek0,ek1,nek);
+	vec Ek = linspace(sqrt(ek0),sqrt(ek1),nek);
+	Ek = square(Ek);
 	for(auto iek : Ek)
 	{
 		num_r = vec(sz,fill::zeros);
@@ -119,7 +120,7 @@ int main()
 				double max_time = max_time_mul*(x_r-x_l)/v_ini(0); // max_time_mul times length / initial velocity
 				while(!fssh.stop_traj())
 				{
-					fssh.run_step();
+					fssh.run_step(1,0);
 					//cout<<ion.x(0)<<'\t'<<ion.v(0)<<'\t'<<ion.E0(ion.istate)<<'\t'<<ion.E0(ion.istate)+0.5*mass*dot(ion.v,ion.v)<<endl;
 					if (ion.time_duration > max_time)
 						break;
@@ -142,7 +143,7 @@ int main()
 		if (rank ==0)
 		{
 			//cout<<log(iek);
-			cout<<iek;
+			cout<<sqrt(2*mass*iek);
 			for (auto m1:num_R)
 				cout<<'\t'<<m1/(nsample-Trapped);
 			for (auto m1:num_T)

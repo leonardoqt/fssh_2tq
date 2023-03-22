@@ -35,7 +35,7 @@ void sh::new_trajectory(cx_vec psi0, double mass, vec x0, vec v0)
 	// some trajectory counting history
 }
 
-void sh::run_step()
+void sh::run_step(int hault_tq1, int hault_tq2)
 {
 	vec E1, E2;
 	mat V1, V2, U, T;
@@ -46,36 +46,37 @@ void sh::run_step()
 	double dtq1 = dtc / K1;
 	//
 	//interpolate potential in LD
-	vec dHdtm(K1,fill::zeros); // use for vv of dqt1
 	vec E_tq0 = E1, E_tq1;
 	mat V_tq0 = V1, V_tq1, U_tq, T_tq;
 	mat dH = U*diagmat(E2)*U.t()-diagmat(E1);
-	mat dHdt_d = V1*dH*V1.t()/dtc;
-	int attemp_hop = 0, attemp_hop_state;
+	int attempt_hop_tq1 = 0, attempt_hop_state = ion->istate;
 	for (int itq1=1; itq1<=K1; itq1++)
 	{
 		mat H_tq1 = V1 * ( diagmat(E1) + itq1*1.0/K1*dH ) * V1.t();
 		H->diag_parallel(H_tq1,V_tq0,E_tq1,V_tq1,U_tq,T_tq);
 		T_tq /= dtq1;
-		mat tmp = ( V_tq1.col(ion->istate).t()*dHdt_d*V_tq1.col(ion->istate) ) / ion->mass;
-		dHdtm(itq1-1) = tmp(0,0);
 		//
-		// get required dtq2
-		int K2 = ele->query_hop(thd2,E_tq0,E_tq1,U_tq,T_tq,ion->istate,dtq1);
-		// evaulate hop, ignore if already attempt to hop
-		for (int itq2=0; itq2<K2; itq2++)
+		if ( !(hault_tq1 && attempt_hop_tq1) )
 		{
-			if (attemp_hop>0) break;
-			vec hop_p = ele->get_hop(itq2);
-			vec accum_p = cumsum(hop_p);
-			double rr = randu();
-			for (int t3 = 0; t3 < H->sz; t3++)
+			int attempt_hop_tq2 = 0;
+			// get required dtq2
+			int K2 = ele->query_hop(thd2,E_tq0,E_tq1,U_tq,T_tq,attempt_hop_state,dtq1);
+			// evaulate hop, ignore if already attempt to hop
+			for (int itq2=0; itq2<K2; itq2++)
 			{
-				if ( rr <= accum_p(t3) )
+				if (hault_tq2 && attempt_hop_tq2) break;
+				vec hop_p = ele->get_hop(itq2);
+				vec accum_p = cumsum(hop_p);
+				double rr = randu();
+				for (int t3 = 0; t3 < H->sz; t3++)
 				{
-					attemp_hop_state = t3;
-					attemp_hop = 1;
-					break;
+					if ( rr <= accum_p(t3) )
+					{
+						attempt_hop_state = t3;
+						attempt_hop_tq1 = 1;
+						attempt_hop_tq2 = 1;
+						break;
+					}
 				}
 			}
 		}
@@ -87,8 +88,7 @@ void sh::run_step()
 		V_tq0 = V_tq1;
 	}
 	// execute hop (or not, just ionic step)
-	if (attemp_hop ==0) attemp_hop_state = ion->istate;
-	ion->move_by(attemp_hop_state,dtc);
+	ion->move_by(attempt_hop_state,dtc);
 	//ion->move_by(attemp_hop_state,dHdtm,dtc);
 	ion->try_hop();
 	ele->V = ion->V0;
