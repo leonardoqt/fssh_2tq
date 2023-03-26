@@ -73,6 +73,7 @@ void sh::run_step(int hault_tq1, int hault_tq2)
 					if ( rr <= accum_p(t3) )
 					{
 						attempt_hop_state = t3;
+						ele->istate = attempt_hop_state;
 						attempt_hop_tq1 = 1;
 						attempt_hop_tq2 = 1;
 						break;

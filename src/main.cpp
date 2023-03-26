@@ -60,8 +60,8 @@ int main()
 	cx_vec psi(sz,fill::zeros);
 	if (state >=sz)
 	{
-		arma_rng::set_seed(state);
-		psi = cx_vec(sz,fill::randn);
+		//arma_rng::set_seed(state);
+		psi = cx_vec(sz,fill::ones);
 	}
 	else
 		psi(state) = 1;
@@ -88,7 +88,7 @@ int main()
 				diab_surf<<"\t"<<H_diab(t2,t2);
 				adiab_surf<<"\t"<<E_adiab(t2);
 			}
-			diab_surf<<'\t'<<H_diab(0,1)<<endl;
+			diab_surf<<'\t'<<H_diab(sz-1,sz-2)<<endl;
 			adiab_surf<<endl;
 		}
 		diab_surf.close();
@@ -120,7 +120,7 @@ int main()
 				double max_time = max_time_mul*(x_r-x_l)/v_ini(0); // max_time_mul times length / initial velocity
 				while(!fssh.stop_traj())
 				{
-					fssh.run_step(1,0);
+					fssh.run_step(0,0);
 					//cout<<ion.x(0)<<'\t'<<ion.v(0)<<'\t'<<ion.E0(ion.istate)<<'\t'<<ion.E0(ion.istate)+0.5*mass*dot(ion.v,ion.v)<<endl;
 					if (ion.time_duration > max_time)
 						break;

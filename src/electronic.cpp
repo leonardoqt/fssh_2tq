@@ -48,12 +48,17 @@ int electronic::query_hop(double thd2, vec EE1, vec EE2, mat UU, mat TT, int Ist
 	for (int ti=istate,tj=0; tj<sz; tj++)
 		if (tj != ti)
 		{
-			double rate = 2*real( T(ti,tj)*psi_t(tj)*conj(psi_t(ti)) / (psi(ti)*conj(psi(ti))+1e-15) )*dtq1;
+			double rate = 2*real( T(ti,tj)*psi_t(tj)*conj(psi_t(ti)) / (psi(ti)*conj(psi(ti))+1e-4) )*dtq1;
 			if ( rate > 0) hop(ti) = rate;
 		}
 	//
 	// calculate ntq2
 	ntq2 = floor(sum(hop)/thd2)+1;
+	if (ntq2 > 1e5)
+	{
+		cout<<"Warning: K2 > 10^5, reset it to 10^5!"<<endl;
+		ntq2 = 100000;
+	}
 	dtq2 = dtq1 / ntq2;
 	return ntq2;
 }
