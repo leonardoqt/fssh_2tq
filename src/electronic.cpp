@@ -48,8 +48,8 @@ int electronic::query_hop(double thd2, vec EE1, vec EE2, mat UU, mat TT, int Ist
 	for (int ti=istate,tj=0; tj<sz; tj++)
 		if (tj != ti)
 		{
-			double rate = 2*real( T(ti,tj)*psi_t(tj)*conj(psi_t(ti)) / (psi(ti)*conj(psi(ti))+1e-4) )*dtq1;
-			if ( rate > 0) hop(ti) = rate;
+			double rate = 2*real( T(ti,tj)*psi_t(tj)*conj(psi_t(ti)) / (psi(ti)*conj(psi(ti))+1e-5) )*dtq1;
+			if ( rate > 0) hop(tj) = rate;
 		}
 	//
 	// calculate ntq2
@@ -66,15 +66,16 @@ int electronic::query_hop(double thd2, vec EE1, vec EE2, mat UU, mat TT, int Ist
 vec electronic::get_hop(int itq2)
 {
 	vec hop_p = vec(sz,fill::zeros);
-	cx_mat iHt = ( ( diagmat(E1)+(2*itq2+1.0)/2/dtq2*diagmat(E2-E1) )*cx_double(0,-1) - T )*dtq2;
+	cx_mat iHt = ( ( diagmat(E1)+(2*itq2+1.0)/2/ntq2*diagmat(E2-E1) )*cx_double(0,-1) - T )*dtq2;
 	cx_vec psi2 = expmat(iHt)*psi;
 	//
 	for (int ti=istate,tj=0; tj<sz; tj++)
 		if (tj != ti)
 		{
-			double rate = 2*real( T(ti,tj)*psi2(tj)*conj(psi2(ti)) / (psi(ti)*conj(psi(ti))+1e-15) )*dtq2;
+			double rate = 2*real( T(ti,tj)*psi2(tj)*conj(psi2(ti)) / (psi(ti)*conj(psi(ti))+1e-5) )*dtq2;
 			if ( rate > 0) hop_p(tj) = rate;
 		}
+	psi = psi2;
 	return hop_p;
 }
 

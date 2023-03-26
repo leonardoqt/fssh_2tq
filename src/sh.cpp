@@ -59,9 +59,9 @@ void sh::run_step(int hault_tq1, int hault_tq2)
 		if ( !(hault_tq1 && attempt_hop_tq1) )
 		{
 			int attempt_hop_tq2 = 0;
-			// get required dtq2
+			// propagate wfc in LD is also done here
 			int K2 = ele->query_hop(thd2,E_tq0,E_tq1,U_tq,T_tq,attempt_hop_state,dtq1);
-			// evaulate hop, ignore if already attempt to hop
+			// evaulate hop
 			for (int itq2=0; itq2<K2; itq2++)
 			{
 				if (hault_tq2 && attempt_hop_tq2) break;
@@ -82,8 +82,6 @@ void sh::run_step(int hault_tq1, int hault_tq2)
 			}
 		}
 		// finish dtq2, restore wfc as calculated in query_hop
-		// TODO: in this scheme, we defer actual hop evaluation to the end of tc
-		// may also try execute hop right at the correcponding dtq1
 		ele->restore_psi();
 		E_tq0 = E_tq1;
 		V_tq0 = V_tq1;
