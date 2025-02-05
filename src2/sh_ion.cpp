@@ -76,3 +76,56 @@ void sh_ion::move_and_hop(sh_ele_engine& engine, sh_eigstate& eigstate, int jsta
 	a = a_t;
 	time_duration += dt;
 }
+
+void sh_ion::move_and_hop(vec xx, vec vv, sh_ele_engine& engine, sh_eigstate& eigstate, int jstate, double dt)
+{
+	x_t = xx;
+	v_t = vv;
+	vec egrad;
+	engine.compute_scf(x_t,eigstate);
+	engine.compute_egrad(x_t,istate,egrad);
+	a_t = -egrad / mass;
+	//
+	if(jstate != istate)
+	{
+		// deal with rescale/frustrated hop
+		del_pot = eigstate.E(jstate) - eigstate.E(istate);
+		engine.compute_egrad(x_t,jstate,egrad);
+		engine.compute_drvcp(x_t,istate,jstate,dij);
+		//
+		vec dij_unit = dij / norm(dij);
+		vec v_para = dij_unit * dot(dij_unit,v_t);
+		vec v_perp = v_t - v_para;
+		if (norm(v_para)<1e-4) std::cout<<"Warning: norm of velocity in dij direction is less than 1e-4"<<std::endl;
+		//
+		double Ek = 0.5*dot(mass,v_t%v_t);
+		double E0 = 0.5*dot(mass,v_perp%v_perp);
+		double Ep = 0.5*dot(mass,v_para%v_para);
+		double Ec = 0.5*dot(mass,v_para%v_perp);
+		double Er = Ek - E0 - del_pot;
+		if ( Ec*Ec+Ep*Er >=0 )
+		{
+			// successful hop
+			// change istate to the hopped one
+			istate = jstate;
+			// scale v_para > 0 to match energy
+			double lambda = ( sqrt(Ec*Ec+Ep*Er)-Ec ) / Ep;
+			v_t = v_perp + lambda * v_para;
+			a_t = -egrad / mass;
+		}
+		// TODO: ask vale about this condition
+		// currently using eq. 26 of https://pubs.acs.org/doi/abs/10.1021/acs.jctc.3c00276
+		// TODO: may use unit dij as basis to compute lambda
+		else if (dot(egrad,dij)*dot(dij,v_t)>0)
+		{
+			// reverse velocity in dij direction
+			double lambdaf = -2*Ec/Ep - 1;
+			v_t = v_perp + lambdaf * v_para;
+		}
+	}
+	//
+	x = x_t;
+	v = v_t;
+	a = a_t;
+	time_duration += dt;
+}

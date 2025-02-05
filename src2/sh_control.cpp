@@ -43,6 +43,7 @@ void sh_control::run_step(sh_wfc& wfc, sh_ion& ion, sh_ele_engine& engine, sh_ei
 	T = T / dtc;
 	int K1 = wfc.query_ntq1(thresh1,eig1.E,T,dtc);
 	double dtq1 = dtc / K1;
+	std::cout<<"In SH, K1 = "<<K1<<std::endl;
 	//
 	// interpolate potential in LD
 	vec E_tq0 = eig1.E, E_tq1;
@@ -92,6 +93,94 @@ void sh_control::run_step(sh_wfc& wfc, sh_ion& ion, sh_ele_engine& engine, sh_ei
 		V_tq0 = V_tq1;
 	}
 	ion.move_and_hop(engine,eig2,attempt_hop_state,dtc);
+	// TQ: this must be done outside, because here we need to make assign value to "Derived" class
+	//eig1 = eig2;
+}
+
+void sh_control::run_step_interp_H(sh_wfc& wfc, sh_ion& ion, sh_ele_engine& engine, sh_eigstate& eig1, sh_eigstate& eig2, int hault_tq1, int hault_tq2)
+{
+	// eig1 must be the eigstate used for init the trajectory
+	// must assign eig2 (the derived class) to eig1 after calling this
+	//
+	mat U, T;
+	vec egrad;
+	// propose a move using dtc
+	ion.try_move(engine,eig2,dtc);
+	eig2.compute_logU(eig1,U,T);
+	T = T / dtc;
+	int K1 = wfc.query_ntq1(thresh1,eig1.E,T,dtc);
+	double dtq1 = dtc / K1;
+	std::cout<<"In SH, K1 = "<<K1<<std::endl;
+	engine.compute_egrad(ion.x_t,ion.istate,egrad);
+	vec a_t = -egrad / ion.mass;
+	double weight = norm(logmat(U));
+	//
+	// interpolate potential in LD
+	// for each dtq1 step, also run velocity verlet for classical dynamics
+	// along the x_t-x direction
+	// v will be update based on interpolation between ion.a and a1, depending on whether U_LD of diabats is similar to 1 (ion.a)
+	// or U (a_t)
+	vec ex = ion.x_t - ion.x;
+	double xx = norm(ex);
+	ex = ex / xx;
+	double x0 = 0;
+	vec v0 = ion.v, a0 = ion.a;
+	//
+	vec E_tq0 = eig1.E, E_tq1;
+	mat V_tq0 = eye(size(T)), V_tq1, U_tq, T_tq, U_LD = eye(size(T));
+	mat dH = U*diagmat(eig2.E)*U.t()-diagmat(eig1.E);
+	int attempt_hop_tq1 = 0, attempt_hop_state = ion.istate;
+	//
+	for(int itq1=1; itq1<=K1; itq1++)
+	{
+		// run vv along ex direction
+		x0 = x0 + dot(ex,v0)*dtq1 + dot(ex,a0)/2*dtq1*dtq1;
+		mat H_tq1 = diagmat(eig1.E) + x0/xx*dH;
+		solve_LD(H_tq1,V_tq0,E_tq1,V_tq1,U_tq,T_tq);
+		T_tq /= dtq1;
+		U_LD = U_LD*U_tq;
+		// get interpolate a, using norm(logU)
+		double weight_LD = norm(logmat(U_LD));
+		vec a1 = ion.a + weight_LD/weight*(a_t-ion.a);
+		v0 = v0 + (a0+a1)/2*dtq1;
+		a0 = a1;
+		std::cout<<"a1 scaling = "<<weight_LD/weight<<std::endl;
+		//
+		// TODO: the expected behavior of hault_tq1 and hault_tq2 is to control whether continue running evolution if a hop is proposed, but the corresponding hopping/dynamics treatment is not implemented, may consider remove them or set both as zero and leave this comment here
+		if( !(hault_tq1 && attempt_hop_tq1) )
+		{
+			int attempt_hop_tq2 = 0;
+			// propagate wfc in LD is done here
+			int K2 = wfc.query_ntq2(thresh2,E_tq0,E_tq1,U_tq,T_tq,attempt_hop_state,dtq1);
+			// evaluate hop
+			for(int itq2=0; itq2<K2; itq2++)
+			{
+				if (hault_tq2 && attempt_hop_tq2) break;
+				vec hop_p = wfc.get_hop(E_tq0,E_tq1,T_tq,itq2);
+				vec accum_p = cumsum(hop_p);
+				double rr = randu();
+				for(int t3=0; t3<wfc.sz; t3++)
+				{
+					if ( rr<=accum_p(t3) )
+					{
+						attempt_hop_state = t3;
+						wfc.istate = attempt_hop_state;
+						attempt_hop_tq1 = 1;
+						attempt_hop_tq2 = 1;
+						break;
+					}
+				}
+			}
+		}
+		// finish dtq2, restore wfc as calculated in query_ntq2
+		wfc.restore_psi();
+		E_tq0 = E_tq1;
+		V_tq0 = V_tq1;
+	}
+	vec x_final = ion.x + x0*ex;
+	vec v_final = v0;
+	//
+	ion.move_and_hop(x_final,v_final,engine,eig2,attempt_hop_state,dtc);
 	// TQ: this must be done outside, because here we need to make assign value to "Derived" class
 	//eig1 = eig2;
 }

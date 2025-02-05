@@ -47,10 +47,9 @@ int main()
 			vec v = ion.v;
 			vec E = eig2.E;
 			double xx = x(0);
-			double vv = v(0);
 			double ek = 0.5*dot(ion.mass,v%v);
 			double ep = E(ion.istate);
-			std::cout<<ion.time_duration<<'\t'<<xx<<'\t'<<vv<<'\t'<<ek<<'\t'<<ep<<'\t'<<ek+ep<<'\t'<<ion.istate<<'\t'<<abs(wfc.psi(0))<<std::endl;
+			std::cout<<ion.time_duration<<'\t'<<xx<<'\t'<<ek<<'\t'<<ep<<'\t'<<ek+ep<<'\t'<<ion.istate<<'\t'<<abs(wfc.psi(0))<<std::endl;
 		}
 	}
 	//
